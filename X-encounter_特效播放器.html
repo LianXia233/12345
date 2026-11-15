@@ -2465,6 +2465,7 @@ input[type=range].seek-slider {
   }
 
   LyricEngine.prototype.init = function() {
+    this.normalizeFrames();
     this.setFxMode(this.fxModes[this.currentFxIdx]);
     this.compileAll();
   };
@@ -2570,7 +2571,27 @@ input[type=range].seek-slider {
   };
 
   // Precompile and cache all 3899 frames (instant O(1) runtime lookup, 0ms frame drops)
-  LyricEngine.prototype.compileAll = function() {
+    // Gap bridging & minimum hold duration (Eliminates dropped/missing frames in decorative subtitles)
+  LyricEngine.prototype.normalizeFrames = function() {
+    var total = this.frames.length;
+    var MAX_GAP_BRIDGE = 750; // Bridge micro-gaps <= 750ms between consecutive beats
+    var MIN_HOLD = 400;       // Ensure each visual frame holds for at least 400ms
+
+    for (var i = 0; i < total; i++) {
+      var s = this.frames[i][0];
+      var e = this.frames[i][1];
+      var nextStart = (i + 1 < total) ? this.frames[i + 1][0] : s + 2000;
+      var gap = nextStart - e;
+
+      if (gap > 0 && gap <= MAX_GAP_BRIDGE) {
+        this.frames[i][1] = nextStart;
+      } else if (e - s < MIN_HOLD) {
+        this.frames[i][1] = Math.min(nextStart, s + MIN_HOLD);
+      }
+    }
+  };
+
+LyricEngine.prototype.compileAll = function() {
     var total = this.frames.length;
     this.cache = new Array(total);
     for (var i = 0; i < total; i++) {
@@ -2672,6 +2693,11 @@ input[type=range].seek-slider {
         this.lastFrameIdx = next;
         return next;
       }
+      var next2 = last + 2;
+      if (next2 < len && ms >= this.frames[next2][0] && ms < this.frames[next2][1]) {
+        this.lastFrameIdx = next2;
+        return next2;
+      }
     }
 
     // Binary search fallback on seek or big jump
@@ -2760,13 +2786,15 @@ input[type=range].seek-slider {
         this.renderFrame(frameIdx);
         this.currentFrameIdx = frameIdx;
       }
-      var sSec = this.frames[frameIdx][0] / 1000;
+      // Solid continuous opacity throughout active sequences
+      // Only gently fade out in the final 180ms if followed by a real musical pause (> 250ms)
+      var isFollowedByPause = (frameIdx + 1 >= this.frames.length) || (this.frames[frameIdx + 1][0] - this.frames[frameIdx][1] > 250);
       var eSec = this.frames[frameIdx][1] / 1000;
       var alpha = 1;
-      if (eSec - sSec >= 0.35) {
-        alpha = Math.min(1, (timeSec - sSec) / 0.15, (eSec - timeSec) / 0.15);
+      if (isFollowedByPause && (eSec - timeSec < 0.18)) {
+        alpha = Math.max(0, (eSec - timeSec) / 0.18);
       }
-      this.wrapperEl.style.opacity = Math.max(0, Math.min(1, alpha)).toFixed(3);
+      this.wrapperEl.style.opacity = alpha.toFixed(3);
     }
   };
 
