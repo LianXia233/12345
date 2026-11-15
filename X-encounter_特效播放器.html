@@ -1179,7 +1179,7 @@ input[type=range].seek-slider {
   position: fixed;
   inset: 0;
   z-index: 999;
-  display: flex;
+  display: none;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -1189,10 +1189,9 @@ input[type=range].seek-slider {
   cursor: pointer;
   transition: opacity 0.4s ease, visibility 0.4s;
 }
-#mobile-play-cue.hidden {
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
+#mobile-play-cue.hidden, #mobile-play-cue {
+  display: none !important;
+  pointer-events: none !important;
 }
 .mobile-cue-box {
   display: flex;
@@ -1378,7 +1377,7 @@ input[type=range].seek-slider {
 </main>
 
 <!-- Mobile Play Cue (移动端触启式神仪式指引) -->
-<div id="mobile-play-cue" class="mobile-play-cue" title="点击开始启奏">
+<div id="mobile-play-cue" class="mobile-play-cue hidden" style="display:none;" title="点击开始启奏">
   <div class="cue-halo"></div>
   <div class="cue-pentagram">✡</div>
   <div class="cue-label">式神招来 · 点击启奏</div>
@@ -3011,7 +3010,18 @@ input[type=range].seek-slider {
 
   PlayerApp.prototype.bindEvents = function() {
     var self = this;
-    this.playBtn.onclick = function() { self.togglePlay(); };
+    var cue = document.getElementById('mobile-play-cue');
+    if (cue) {
+      cue.style.display = 'none';
+      cue.onclick = function() {
+        cue.style.display = 'none';
+        self.togglePlay();
+      };
+    }
+    this.playBtn.onclick = function() {
+      if (cue) cue.style.display = 'none';
+      self.togglePlay();
+    };
     this.audio.addEventListener('play', function() {
       self.playBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="4" width="4" height="16" rx="1.5"/><rect x="15" y="4" width="4" height="16" rx="1.5"/></svg>';
     });
