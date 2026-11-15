@@ -329,6 +329,8 @@ h1.song-title {
   mask-image: linear-gradient(to top, transparent 0%, black 20%, black 90%, transparent 100%);
   -webkit-mask-image: linear-gradient(to top, transparent 0%, black 20%, black 90%, transparent 100%);
 }
+
+#tachie-stage {
   position: fixed;
   inset: 0;
   pointer-events: none;
@@ -498,6 +500,17 @@ h1.song-title {
 }
 
 .lyric-wrapper {
+  /* Palette colors (O(1) switch via JS-set custom properties) */
+  --sym-box: #38bdf8;
+  --sym-box-hollow: #7dd3fc;
+  --sym-dia: #fde047;
+  --sym-dia-hollow: #fef08a;
+  --sym-tri: #c084fc;
+  --sym-star: #f472b6;
+  --sym-arr: #00f5ff;
+  --sym-dot: #bae6fd;
+  --sym-latin: #e0f2fe;
+  --kanji-gradient: linear-gradient(135deg, #ffffff 0%, #dbeafe 30%, #93c5fd 65%, #fde68a 100%);
   position: relative;
   display: flex;
   flex-direction: column;
@@ -603,7 +616,7 @@ h1.song-title {
 
 /* Japanese Kanji & Chinese Translation Gradient Metallic Typography */
 .c-kanji {
-  background: linear-gradient(135deg, #ffffff 0%, #dbeafe 30%, #93c5fd 65%, #fde68a 100%);
+  background: var(--kanji-gradient, linear-gradient(135deg, #ffffff 0%, #dbeafe 30%, #93c5fd 65%, #fde68a 100%));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent !important;
@@ -651,43 +664,90 @@ h1.song-title {
   display: inline-block;
   vertical-align: middle;
   white-space: nowrap !important;
+  will-change: transform, opacity, filter;
+  animation: sym-breathe 3.6s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * 55ms);
 }
 
 .sym-box-solid {
   color: var(--sym-box, #38bdf8);
   text-shadow: 0 0 10px currentColor, 0 0 20px var(--cyan-core);
+  animation: sym-breathe 3.6s ease-in-out infinite, sym-shimmer 4.4s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * 55ms), calc(var(--i, 0) * 55ms + 1.3s);
 }
 .sym-box-hollow {
   color: var(--sym-box-hollow, #7dd3fc);
   text-shadow: 0 0 8px currentColor;
+  animation: sym-breathe 4s ease-in-out infinite, sym-shimmer 4.4s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * 55ms), calc(var(--i, 0) * 55ms + 1.3s);
 }
 .sym-dia-solid {
   color: var(--sym-dia, #fde047);
   text-shadow: 0 0 10px currentColor, 0 0 20px rgba(245, 158, 11, 0.7);
+  animation: sym-breathe 3.8s ease-in-out infinite, sym-shimmer 4.6s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * 55ms), calc(var(--i, 0) * 55ms + 1.5s);
 }
 .sym-dia-hollow {
   color: var(--sym-dia-hollow, #fef08a);
   text-shadow: 0 0 8px currentColor;
+  animation: sym-breathe 3.8s ease-in-out infinite, sym-shimmer 4.6s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * 55ms), calc(var(--i, 0) * 55ms + 1.5s);
 }
 .sym-tri-up, .sym-tri-down {
   color: var(--sym-tri, #c084fc);
   text-shadow: 0 0 10px currentColor;
+  animation: sym-breathe 3.4s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * 55ms);
 }
 .sym-star-solid, .sym-star-hollow {
   color: var(--sym-star, #f472b6);
   text-shadow: 0 0 12px currentColor, 0 0 24px rgba(244, 114, 182, 0.6);
+  animation: sym-breathe 3.2s ease-in-out infinite, sym-twinkle 2.6s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * 55ms), calc(var(--i, 0) * 55ms + 0.8s);
 }
 .sym-arr-left, .sym-arr-right, .sym-arr-up, .sym-arr-down, .sym-arr-diag {
   color: var(--sym-arr, #00f5ff);
   text-shadow: 0 0 12px currentColor, 0 0 22px var(--cyan-core);
+  animation: sym-breathe 3.2s ease-in-out infinite, sym-flow 2.8s linear infinite;
+  animation-delay: calc(var(--i, 0) * 55ms), calc(var(--i, 0) * 55ms + 0.6s);
 }
 .sym-dot, .sym-line {
   color: var(--sym-dot, #bae6fd);
   text-shadow: 0 0 8px currentColor;
+  animation: sym-breathe 3.6s ease-in-out infinite, sym-flicker 3s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * 55ms), calc(var(--i, 0) * 55ms + 1.2s);
 }
 .sym-sakura {
   color: #f472b6;
   text-shadow: 0 0 12px #f43f5e, 0 0 26px rgba(244, 63, 94, 0.6);
+  animation: sym-breathe 3.4s ease-in-out infinite, sym-twinkle 2.8s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * 55ms), calc(var(--i, 0) * 55ms + 0.9s);
+}
+.sym-latin {
+  color: var(--sym-latin, #e0f2fe);
+}
+
+/* 幽玄流光：装饰符号逐字符动画关键帧 */
+@keyframes sym-breathe {
+  0%, 100% { transform: scale(1); opacity: 0.86; }
+  50% { transform: scale(1.07); opacity: 1; }
+}
+@keyframes sym-shimmer {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.35) saturate(1.15); }
+}
+@keyframes sym-flow {
+  0% { filter: brightness(1) drop-shadow(0 0 4px currentColor); }
+  50% { filter: brightness(1.5) drop-shadow(0 0 12px currentColor); }
+  100% { filter: brightness(1) drop-shadow(0 0 4px currentColor); }
+}
+@keyframes sym-twinkle {
+  0%, 100% { opacity: 0.55; transform: scale(0.92); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+@keyframes sym-flicker {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
 }
 
 /* Footer / Modern Island Player Bar */
@@ -2512,6 +2572,7 @@ input[type=range].seek-slider {
         arr: '#00f5ff',
         dot: '#bae6fd',
         latin: '#e0f2fe',
+        kanjiGradient: 'linear-gradient(135deg, #ffffff 0%, #dbeafe 30%, #93c5fd 65%, #fde68a 100%)',
         kanjiClass: 'c-kanji'
       },
       onmyo: {
@@ -2526,6 +2587,7 @@ input[type=range].seek-slider {
         arr: '#f59e0b',
         dot: '#fed7aa',
         latin: '#fef3c7',
+        kanjiGradient: 'linear-gradient(135deg, #ffffff 0%, #fed7aa 30%, #fb923c 60%, #ef4444 100%)',
         kanjiClass: 'c-kanji-fire'
       },
       neon: {
@@ -2540,6 +2602,7 @@ input[type=range].seek-slider {
         arr: '#00f0ff',
         dot: '#e0e7ff',
         latin: '#ffffff',
+        kanjiGradient: 'linear-gradient(135deg, #ffffff 0%, #e9d5ff 30%, #c084fc 60%, #818cf8 100%)',
         kanjiClass: 'c-kanji-mystic'
       },
       sakura: {
@@ -2554,6 +2617,7 @@ input[type=range].seek-slider {
         arr: '#f472b6',
         dot: '#fed7aa',
         latin: '#fff1f2',
+        kanjiGradient: 'linear-gradient(135deg, #ffffff 0%, #ffe4e6 30%, #fb7185 60%, #f43f5e 100%)',
         kanjiClass: 'c-kanji'
       },
       lightning: {
@@ -2568,6 +2632,7 @@ input[type=range].seek-slider {
         arr: '#00f5ff',
         dot: '#e2e8f0',
         latin: '#ffffff',
+        kanjiGradient: 'linear-gradient(135deg, #ffffff 0%, #dbeafe 30%, #93c5fd 65%, #fde047 100%)',
         kanjiClass: 'c-kanji'
       }
     };
@@ -2592,15 +2657,15 @@ input[type=range].seek-slider {
   LyricEngine.prototype.init = function() {
     this.setFxMode(this.fxModes[this.currentFxIdx]);
     this.compileAll();
+    this.applyPalette();
   };
 
   LyricEngine.prototype.esc = function(s) {
     return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   };
 
-  // Colorize Japanese text with active palette
+  // Colorize Japanese text with active palette (structure only; colors via CSS variables)
   LyricEngine.prototype.colorizeJpText = function(text) {
-    var P = this.activePalette;
     var result = '';
     var chars = Array.from(text.replace(/[\r\n]/g, ''));
     var len = chars.length;
@@ -2613,66 +2678,52 @@ input[type=range].seek-slider {
         continue;
       }
       if (/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(ch)) {
-        result += '<span class="' + P.kanjiClass + '">' + this.esc(ch) + '</span>';
+        result += '<span class="c-kanji">' + this.esc(ch) + '</span>';
         continue;
       }
 
-      var color = P.latin;
       var symClass = 'sym';
-      var extraStyle = '';
+      var extraStyle = '--i:' + i + ';';
 
       if (this.BOX_SOLID.indexOf(ch) >= 0) {
-        color = P.box;
         symClass = 'sym sym-box-solid';
       } else if (this.BOX_HOLLOW.indexOf(ch) >= 0) {
-        color = P.boxHollow;
         symClass = 'sym sym-box-hollow';
       } else if (this.DIA_SOLID.indexOf(ch) >= 0) {
-        color = P.dia;
         symClass = 'sym sym-dia-solid';
       } else if (this.DIA_HOLLOW.indexOf(ch) >= 0) {
-        color = P.diaHollow;
         symClass = 'sym sym-dia-hollow';
       } else if (this.STA_SOLID.indexOf(ch) >= 0 || this.STA_HOLLOW.indexOf(ch) >= 0) {
-        color = P.star;
         symClass = this.STA_SOLID.indexOf(ch) >= 0 ? 'sym sym-star-solid' : 'sym sym-star-hollow';
       } else if (this.TRI_SOLID.indexOf(ch) >= 0 || this.TRI_HOLLOW.indexOf(ch) >= 0) {
-        color = P.tri;
         symClass = ch === '▲' || ch === '△' ? 'sym sym-tri-up' : 'sym sym-tri-down';
       } else if (ch === '←') {
-        color = P.arr;
         symClass = 'sym sym-arr-left';
       } else if (ch === '→') {
-        color = P.arr;
         symClass = 'sym sym-arr-right';
       } else if (ch === '↑') {
-        color = P.arr;
         symClass = 'sym sym-arr-up';
       } else if (ch === '↓' || ch === '↘' || ch === '↗' || ch === '↙' || ch === '↖') {
-        color = P.arr;
         symClass = 'sym sym-arr-down';
       } else if (ch === '✿') {
-        color = '#f472b6';
         symClass = 'sym sym-sakura';
       } else if ('・．:：!！?？=＝-—~～／＼｜‖'.indexOf(ch) >= 0) {
-        color = P.dot;
         symClass = 'sym sym-dot';
       }
 
       if (isDenseSym) {
         var hue = Math.floor((i / len) * 260);
-        extraStyle = 'filter: hue-rotate(' + hue + 'deg);';
+        extraStyle += 'filter: hue-rotate(' + hue + 'deg);';
       }
 
-      result += '<span class="' + symClass + '" style="color:' + color + ';' + extraStyle + '">' + this.esc(ch) + '</span>';
+      result += '<span class="' + symClass + '" style="' + extraStyle + '">' + this.esc(ch) + '</span>';
     }
     return result;
   };
 
-  // Colorize Chinese translation text
+  // Colorize Chinese translation text (structure only; colors via CSS variables)
   LyricEngine.prototype.colorizeCnText = function(text) {
     if (!text) return '';
-    var P = this.activePalette;
     var result = '';
     var chars = Array.from(text.replace(/[\r\n]/g, ''));
     var len = chars.length;
@@ -2684,11 +2735,11 @@ input[type=range].seek-slider {
         continue;
       }
       if (/[\u4E00-\u9FAF]/.test(ch)) {
-        result += '<span class="' + P.kanjiClass + '">' + this.esc(ch) + '</span>';
+        result += '<span class="c-kanji">' + this.esc(ch) + '</span>';
       } else if ('「」『』【】（）→←・·-—'.indexOf(ch) >= 0) {
-        result += '<span class="sym sym-dot" style="color:' + P.dot + '">' + this.esc(ch) + '</span>';
+        result += '<span class="sym sym-dot">' + this.esc(ch) + '</span>';
       } else {
-        result += '<span style="color:' + P.latin + '">' + this.esc(ch) + '</span>';
+        result += '<span class="sym sym-latin">' + this.esc(ch) + '</span>';
       }
     }
     return result;
@@ -2721,6 +2772,22 @@ input[type=range].seek-slider {
     }
   };
 
+  // Apply palette colors to CSS custom properties on the wrapper (O(1), no recompile)
+  LyricEngine.prototype.applyPalette = function() {
+    var P = this.activePalette;
+    var st = this.wrapperEl.style;
+    st.setProperty('--sym-box', P.box);
+    st.setProperty('--sym-box-hollow', P.boxHollow);
+    st.setProperty('--sym-dia', P.dia);
+    st.setProperty('--sym-dia-hollow', P.diaHollow);
+    st.setProperty('--sym-tri', P.tri);
+    st.setProperty('--sym-star', P.star);
+    st.setProperty('--sym-arr', P.arr);
+    st.setProperty('--sym-dot', P.dot);
+    st.setProperty('--sym-latin', P.latin);
+    st.setProperty('--kanji-gradient', P.kanjiGradient);
+  };
+
   LyricEngine.prototype.generateRandomPalette = function() {
     var baseHue = Math.floor(Math.random() * 360);
     var getHue = function(step) { return (baseHue + step * 137.508) % 360; };
@@ -2739,9 +2806,10 @@ input[type=range].seek-slider {
       arr: 'hsl(' + getHue(5) + ', 95%, 66%)',
       dot: 'hsl(' + getHue(6) + ', 75%, 84%)',
       latin: 'hsl(' + getHue(7) + ', 85%, 92%)',
-      kanjiClass: Math.random() > 0.5 ? 'c-kanji-fire' : 'c-kanji'
+      kanjiGradient: 'linear-gradient(135deg, hsl(' + getHue(0) + ',100%,96%) 0%, hsl(' + getHue(2) + ',90%,82%) 45%, hsl(' + getHue(4) + ',85%,70%) 100%)',
+      kanjiClass: 'c-kanji'
     };
-    this.compileAll();
+    this.applyPalette();
   };
 
   LyricEngine.prototype.cyclePalette = function() {
@@ -2751,7 +2819,7 @@ input[type=range].seek-slider {
       this.generateRandomPalette();
     } else {
       this.activePalette = this.palettes[name];
-      this.compileAll();
+      this.applyPalette();
     }
     if (this.currentFrameIdx >= 0) {
       this.renderFrame(this.currentFrameIdx);
@@ -3211,17 +3279,6 @@ input[type=range].seek-slider {
 
       // Tachie auto update (rotates characters across fullscreen backdrop & stands)
       self.tachieManager.autoUpdate(t);
-
-      // Subtitle lyric engine (bilingual subtitles + dedicated symbol animations)
-      // Procedural code-driven continuous animation for lyrics & decorative aura
-      var glowR = 12 + 6 * Math.sin(t * 4.5);
-      var breath = 1 + 0.02 * Math.sin(t * 3.2);
-      var hue = (t * 36) % 360;
-      if (self.lyricEngine && self.lyricEngine.wrapperEl) {
-        self.lyricEngine.wrapperEl.style.setProperty('--glow-radius', glowR.toFixed(1) + 'px');
-        self.lyricEngine.wrapperEl.style.setProperty('--anim-scale', breath.toFixed(3));
-        self.lyricEngine.wrapperEl.style.setProperty('--anim-hue', hue.toFixed(1) + 'deg');
-      }
 
       // Subtitle lyric engine (bilingual subtitles + dedicated symbol animations)
       // Procedural code-driven continuous animation for lyrics & decorative aura
