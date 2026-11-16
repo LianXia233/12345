@@ -2555,14 +2555,17 @@ input[type=range].seek-slider {
     this.currentFrameIdx = -1;
     this.lastFrameIdx = 0;
 
-    // Minimum visible duration for short frames. Symbol / drum-beat frames are
-    // often only 10ms, shorter than a 60fps render tick (16.7ms), so they can
-    // fall entirely between two samples and never be rendered, and even when
-    // rendered they flash too briefly to be seen. Holding each short frame
-    // (duration < 0.35s) for at least MIN_VISIBLE_SEC makes symbols clearly
-    // visible; long lyric frames keep their normal fade in/out.
-    this.MIN_VISIBLE_SEC = 0.02;
+    // Decorative symbol / drum-beat frames are only 10ms long - shorter than a
+    // 60fps render tick (16.7ms). Many are isolated single frames, so at 60fps
+    // they either fall entirely between two ticks or flash for one tick and are
+    // gone before the eye can register them. To keep them visible, after a short
+    // frame (< 0.35s) is rendered we retain it through the following gap for at
+    // least SYM_GRACE_SEC. A newly arriving frame always takes over immediately,
+    // so the per-frame symbol animation is preserved; long lyric frames are
+    // never retained and keep their normal fade in/out.
+    this.SYM_GRACE_SEC = 0.1;
     this.holdUntil = 0;
+    this.heldIsShortFrame = false;
 
     // Color Palettes
     this.paletteNames = ['aurora', 'onmyo', 'neon', 'sakura', 'lightning', 'random'];
@@ -2950,29 +2953,31 @@ input[type=range].seek-slider {
       return;
     }
     var frameIdx = this.findFrame(timeSec);
+    // Backfill the gap right after a short symbol / drum frame so it stays visible
+    // at 60fps (these frames are only 10ms and many are isolated). A newly found
+    // frame always takes over immediately, so the per-frame symbol animation is
+    // kept; only gaps are backfilled, and only for short frames (< 0.35s). Long
+    // lyric frames are never retained and keep their normal fade in/out.
+    if (frameIdx < 0 && this.currentFrameIdx >= 0 &&
+        this.heldIsShortFrame && timeSec < this.holdUntil) {
+      frameIdx = this.currentFrameIdx;
+    }
     if (frameIdx < 0) {
       if (this.currentFrameIdx !== -1) {
         this.jpEl.innerHTML = '';
         this.cnEl.innerHTML = '';
         this.currentFrameIdx = -1;
         this.holdUntil = 0;
+        this.heldIsShortFrame = false;
       }
       this.wrapperEl.style.opacity = '0';
     } else {
-      // Hold short frames (symbols / drum beats, duration < 0.35s) for at
-      // least MIN_VISIBLE_SEC so they are clearly visible at 60fps instead of
-      // flashing between render ticks and disappearing. Long lyric frames
-      // keep their normal fade in/out and are not held.
-      var heldIsShort = this.currentFrameIdx >= 0 &&
-        (this.frames[this.currentFrameIdx][1] - this.frames[this.currentFrameIdx][0] < 350) &&
-        timeSec < this.holdUntil;
-      if (heldIsShort && frameIdx !== this.currentFrameIdx) {
-        frameIdx = this.currentFrameIdx;
-      } else if (frameIdx !== this.currentFrameIdx) {
+      if (frameIdx !== this.currentFrameIdx) {
         this.renderFrame(frameIdx);
         this.currentFrameIdx = frameIdx;
         var isShort = (this.frames[frameIdx][1] - this.frames[frameIdx][0] < 350);
-        this.holdUntil = isShort ? (timeSec + this.MIN_VISIBLE_SEC) : 0;
+        this.heldIsShortFrame = isShort;
+        this.holdUntil = isShort ? (timeSec + this.SYM_GRACE_SEC) : 0;
       }
       var sSec = this.frames[frameIdx][0] / 1000;
       var eSec = this.frames[frameIdx][1] / 1000;
